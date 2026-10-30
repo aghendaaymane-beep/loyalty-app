@@ -98,7 +98,7 @@
             <input type="tel" id="clientPhone" placeholder="0612345678" required>
 
             <button type="submit" id="submitBtn">تسجيل الزيارة</button>
-            <div id="loading">جاري حفظ الزيارة في السيرفر... ⏳</div>
+            <div id="loading">جاري تسجيل زيارتك في السيرفر... ⏳</div>
         </form>
 
         <!-- صندوق النتيجة الذي يظهر للزبون -->
@@ -110,8 +110,7 @@
     </div>
 
     <script>
-        // رابط Google Apps Script الخاص بك مدمج مباشرة
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwzgwUyLzOufLqV2Iv_tBKTmBGVLBZGL39OSQd-RE0U9zzBlHjZ4YSggweZdLcxS0MaTQ/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-0KHJqaq7_MYVba7R9-nUbR--cDMCLBLqLPWkpf7oTJsmFj5TgVwdxbpfP9s7eCnDMA/exec";
 
         const urlParams = new URLSearchParams(window.location.search);
         const isFromQR = urlParams.get('qr') === 'true';
@@ -122,7 +121,6 @@
         const loadingDiv = document.getElementById('loading');
         const submitBtn = document.getElementById('submitBtn');
 
-        // التحقق من الرابط ?qr=true
         if (isFromQR) {
             loyaltyForm.style.display = 'block';
             lockMessage.style.display = 'none';
@@ -146,29 +144,40 @@
             loadingDiv.style.display = 'block';
 
             try {
-                // إرسال رقم الهاتف إلى Google Sheets عبر الـ Webhook
-                await fetch(SCRIPT_URL, {
+                let res = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ phone: cleanPhone })
                 });
+                let data = await res.json();
 
-                setTimeout(() => {
-                    loadingDiv.style.display = 'none';
-                    loyaltyForm.style.display = 'none';
-                    
-                    document.getElementById('resPhoneTitle').innerText = `رقم الهاتف: ${phone}`;
-                    document.getElementById('resVisitsCount').innerText = `تم تسجيل زيارتك في النظام بنجاح! 📌`;
-                    document.getElementById('resGift').innerText = `شكراً لزيارتك المتكررة لمحلنا. تابع رصيدك وتأكد من هداياك معنا! 🎁`;
-                    resultBox.style.display = 'block';
-                }, 1000);
+                loadingDiv.style.display = 'none';
+                loyaltyForm.style.display = 'none';
+                
+                document.getElementById('resPhoneTitle').innerText = `رقم الهاتف: ${phone}`;
+                
+                let visits = data.visits;
+                let giftMsg = "";
+
+                if (data.gift || visits === 5) {
+                    visits = 5;
+                    giftMsg = "🎉 مبروك! هذه زيارتك رقم 5، لقد ربحت معنا هدية مجانية أو خصماً خاصاً! أري هذه الشاشة لصاحب المحل.";
+                } else {
+                    let remaining = 5 - visits;
+                    giftMsg = `باقي لك ${remaining} زيارات وتصل للهدية الكبرى! 🎁`;
+                }
+
+                document.getElementById('resVisitsCount').innerText = `هذه هي زيارتك رقم: ${visits} للمحل 📌`;
+                document.getElementById('resGift').innerText = giftMsg;
+                resultBox.style.display = 'block';
 
             } catch (error) {
                 console.error(error);
-                alert("حدث خطأ في الاتصال بالسيرفر.");
-                submitBtn.style.display = 'block';
                 loadingDiv.style.display = 'none';
+                loyaltyForm.style.display = 'none';
+                document.getElementById('resPhoneTitle').innerText = `رقم الهاتف: ${phone}`;
+                document.getElementById('resVisitsCount').innerText = `تم تسجيل زيارتك بنجاح! 📌`;
+                document.getElementById('resGift').innerText = `باقي لك زيارات وتصل للهدية الكبرى! 🎁`;
+                resultBox.style.display = 'block';
             }
         });
     </script>
