@@ -1,0 +1,48 @@
+// 1. تحديد رقم واتساب المحل (أدخل رقمك مع مفتاح الدولة 212 بدون علامة +)
+const SHOP_WHATSAPP = "212600000000"; 
+
+// 2. التحقق من وجود المعامل ?qr=true في الرابط (يعني هل تم مسح الـ QR Code؟)
+const urlParams = new URLSearchParams(window.location.search);
+const isFromQR = urlParams.get('qr') === 'true';
+
+const loyaltyForm = document.getElementById('loyaltyForm');
+const lockMessage = document.getElementById('lockMessage');
+
+if (isFromQR) {
+    loyaltyForm.style.display = 'block';
+} else {
+    lockMessage.style.display = 'block';
+}
+
+// 3. معالجة التسجيل واحتساب الزيارات بناءً على رقم الهاتف
+loyaltyForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    let name = document.getElementById('clientName').value.trim();
+    let phone = document.getElementById('clientPhone').value.trim();
+
+    // تنظيف رقم الهاتف واستخدامه كمُعرّف فريد (Unique Key)
+    let cleanPhone = phone.replace(/[^0-9]/g, '');
+
+    // جلب عدد الزيارات السابق لهذا الرقم المحدد من ذاكرة المتصفح المحلية
+    let storageKey = 'visits_' + cleanPhone;
+    let currentVisits = parseInt(localStorage.getItem(storageKey) || '0');
+    
+    // زيادة عدد الزيارات بـ 1
+    currentVisits += 1;
+    localStorage.setItem(storageKey, currentVisits);
+
+    // صياغة الرسالة بحسب رقم الزيارة (تخصيص الميساج حسب عدد المرات)
+    let message = "";
+    if (currentVisits === 1) {
+        message = `مرحباً! أنا ${name} (رقم الهاتف: ${phone}). هذه زيارتي الأولى وتسجيلي في برنامج الولاء.`;
+    } else if (currentVisits === 5) {
+        message = `مرحباً! أنا ${name} (رقم الهاتف: ${phone}). هذه زيارتي رقم 5! أود الاستفادة من الخصم أو الهدية المستحقة.`;
+    } else {
+        message = `مرحباً! أنا ${name} (رقم الهاتف: ${phone}). هذه هي زيارتي رقم ${currentVisits} للمحل.`;
+    }
+
+    // التوجيه المباشر إلى تطبيق الواتساب مع الرسالة المركبة
+    let whatsappUrl = `https://wa.me/${SHOP_WHATSAPP}?text=${encodeURIComponent(message)}`;
+    window.location.href = whatsappUrl;
+});

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>برنامج الولاء والزيارات</title>
+    <!-- ربط ملف الـ CSS الخارجي -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="card">
+        <h2>🎁 برنامج الولاء</h2>
+
+        <!-- رسالة المنع في حال عدم المسح عبر QR Code -->
+        <div id="lockMessage" class="lock-msg">
+            ⚠️ يرجى مسح الـ QR Code الموجود داخل المحل لتسجيل زيارتك والاستفادة من العروض!
+        </div>
+
+        <!-- الاستمارة -->
+        <form id="loyaltyForm" style="display: none;">
+            <div class="badge">مسح ضوئي ناجح من داخل المحل ✔️</div>
+            
+            <label for="clientName">الاسم الكامل:</label>
+            <input type="text" id="clientName" placeholder="أدخل اسمك" required>
+
+            <label for="clientPhone">رقم الهاتف (المعرف الخاص بك):</label>
+            <input type="tel" id="clientPhone" placeholder="0612345678" pattern="[0-9]{10}" title="يرجى إدخال رقم هاتف مكون من 10 أرقام" required>
+
+            <button type="submit">تأكيد التسجيل وإرسال للواتساب</button>
+        </form>
+    </div>
+
+    <!-- ربط ملف الـ JavaScript الخارجي -->
+    <script src="script.js"></script>
+</body>
+</html>
