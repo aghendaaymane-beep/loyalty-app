@@ -34,6 +34,7 @@
             border: 1px solid #ccc;
             border-radius: 8px;
             font-size: 16px;
+            text-align: center;
         }
         button {
             background-color: #25D366;
@@ -85,20 +86,23 @@
     <div class="card">
         <h2>🎁 برنامج الولاء والزيارات</h2>
 
-        <!-- رسالة الحظر إذا لم يتم مسح الـ QR أو تم الاستخدام مسبقاً -->
+        <!-- رسالة الخطأ إذا لم يتم مسح QR Code -->
         <div id="lockMessage" class="lock-msg">
-            ⚠️ عذراً، لا يمكن الوصول لهذه الصفحة مباشرة! يرجى مسح الـ QR Code الموجود داخل المحل لتسجيل زيارتك.
+            ⚠️ عذراً، لا يمكن الوصول لهذه الصفحة مباشرة! يرجى مسح الـ QR Code الموجود داخل المحل.
         </div>
 
-        <!-- استمارة إدخال رقم الهاتف -->
+        <!-- استمارة إدخال رقم الهاتف والكود السري -->
         <form id="loyaltyForm" style="display: none;">
             <div class="badge">مسح ضوئي ناجح من داخل المحل ✔️</div>
             
             <label for="clientPhone">رقم الهاتف:</label>
             <input type="tel" id="clientPhone" placeholder="0612345678" required>
 
+            <label for="storePin">الكود السري الموجود في المحل اليوم:</label>
+            <input type="password" id="storePin" placeholder="أدخل الكود المكتوب في المحل" maxlength="4" required>
+
             <button type="submit" id="submitBtn">تسجيل الزيارة</button>
-            <div id="loading">جاري تسجيل زيارتك في السيرفر... ⏳</div>
+            <div id="loading">جاري التحقق وتسجيل الزيارة... ⏳</div>
         </form>
 
         <!-- صندوق النتيجة -->
@@ -111,6 +115,9 @@
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-0KHJqaq7_MYVba7R9-nUbR--cDMCLBLqLPWkpf7oTJsmFj5TgVwdxbpfP9s7eCnDMA/exec";
+        
+        // 🔑 حط هنا الكود السري الذي سيتغير كل يوم في المحل (مثلاً كود اليوم هو 2026)
+        const DAILY_PIN = "2026";
 
         const urlParams = new URLSearchParams(window.location.search);
         const isFromQR = urlParams.get('qr') === 'true';
@@ -121,19 +128,9 @@
         const loadingDiv = document.getElementById('loading');
         const submitBtn = document.getElementById('submitBtn');
 
-        const alreadyVisited = localStorage.getItem('loyalty_visited');
-
-        // التحقق واش جاي من QR Code وأنه ما تسجلش من قبل في نفس التليفون
         if (isFromQR) {
-            if (alreadyVisited) {
-                // إيلا كان مسجل من قبل، كنعطيوها رسالة بلي صافي تسجلات الزيارة ديالو اليوم
-                lockMessage.innerText = "⚠️ لقد قمت بتسجيل زيارتك مسبقاً! ننتظرك في زيارتك القادمة للمحل.";
-                lockMessage.style.display = 'block';
-                loyaltyForm.style.display = 'none';
-            } else {
-                loyaltyForm.style.display = 'block';
-                lockMessage.style.display = 'none';
-            }
+            loyaltyForm.style.display = 'block';
+            lockMessage.style.display = 'none';
         } else {
             lockMessage.style.display = 'block';
             loyaltyForm.style.display = 'none';
@@ -143,9 +140,15 @@
             e.preventDefault();
             
             let phone = document.getElementById('clientPhone').value.trim();
+            let enteredPin = document.getElementById('storePin').value.trim();
             let cleanPhone = phone.replace(/[^0-9]/g, '');
 
-            if(!cleanPhone) {
+            if (enteredPin !== DAILY_PIN) {
+                alert("⚠️ الكود السري للمحل غير صحيح! يرجى التأكد من الكود المكتوب داخل المحل.");
+                return;
+            }
+
+            if (!cleanPhone) {
                 alert("المرجو إدخال رقم هاتف صحيح");
                 return;
             }
@@ -160,32 +163,33 @@
                 });
                 let data = await res.json();
 
-                // قفل الهاتف لكي لا يتمكن من إعادة الإدخال بدون QR جديد
-                localStorage.setItem('loyalty_visited', 'true');
-
                 loadingDiv.style.display = 'none';
                 loyaltyForm.style.display = 'none';
                 
                 document.getElementById('resPhoneTitle').innerText = `رقم الهاتف: ${phone}`;
                 
-                let visits = data.visits;
                 let giftMsg = "";
 
-                if (data.gift || visits === 5) {
-                    visits = 5;
-                    giftMsg = "🎉 مبروك! هذه زيارتك رقم 5، لقد ربحت معنا هدية مجانية أو خصماً خاصاً! أري هذه الشاشة لصاحب المحل.";
+                if (data.alreadyToday) {
+                    document.getElementById('resVisitsCount').innerText = `⚠️ لقد قمت بتسجيل زيارتك اليوم بالفعل!`;
+                    giftMsg = `لا يمكنك تسجيل أكثر من زيارة في نفس اليوم. ننتظرك في زيارتك القادمة للمحل غداً! 📌`;
                 } else {
-                    let remaining = 5 - visits;
-                    giftMsg = `باقي لك ${remaining} زيارات وتصل للهدية الكبرى! 🎁`;
+                    let visits = data.visits;
+                    if (data.gift || visits === 5) {
+                        visits = 5;
+                        giftMsg = "🎉 مبروك! هذه زيارتك رقم 5، لقد ربحت معنا هدية مجانية أو خصماً خاصاً! أري هذه الشاشة لصاحب المحل.";
+                    } else {
+                        let remaining = 5 - visits;
+                        giftMsg = `باقي لك ${remaining} زيارات وتصل للهدية الكبرى! 🎁`;
+                    }
+                    document.getElementById('resVisitsCount').innerText = `هذه هي زيارتك رقم: ${visits} للمحل 📌`;
                 }
 
-                document.getElementById('resVisitsCount').innerText = `هذه هي زيارتك رقم: ${visits} للمحل 📌`;
                 document.getElementById('resGift').innerText = giftMsg;
                 resultBox.style.display = 'block';
 
             } catch (error) {
                 console.error(error);
-                localStorage.setItem('loyalty_visited', 'true');
                 loadingDiv.style.display = 'none';
                 loyaltyForm.style.display = 'none';
                 document.getElementById('resPhoneTitle').innerText = `رقم الهاتف: ${phone}`;
