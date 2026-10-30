@@ -77,6 +77,7 @@
         }
         .result-box h3 { color: #2e7d32; margin-top: 0; }
         .gift-text { color: #d9534f; font-weight: bold; font-size: 18px; margin-top: 10px; }
+        #loading { display: none; color: #666; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -84,19 +85,23 @@
     <div class="card">
         <h2>🎁 برنامج الولاء والزيارات</h2>
 
+        <!-- رسالة الخطأ إذا لم يتم مسح QR Code من المحل -->
         <div id="lockMessage" class="lock-msg">
             ⚠️ يرجى مسح الـ QR Code الموجود داخل المحل لتسجيل زيارتك والاستفادة من العروض!
         </div>
 
+        <!-- استمارة إدخال رقم الهاتف -->
         <form id="loyaltyForm" style="display: none;">
             <div class="badge">مسح ضوئي ناجح من داخل المحل ✔️</div>
             
             <label for="clientPhone">رقم الهاتف:</label>
             <input type="tel" id="clientPhone" placeholder="0612345678" required>
 
-            <button type="submit">تسجيل الزيارة</button>
+            <button type="submit" id="submitBtn">تسجيل الزيارة</button>
+            <div id="loading">جاري حفظ الزيارة في السيرفر... ⏳</div>
         </form>
 
+        <!-- صندوق النتيجة الذي يظهر للزبون -->
         <div id="resultBox" class="result-box">
             <h3 id="resPhoneTitle"></h3>
             <p id="resVisitsCount"></p>
@@ -105,13 +110,19 @@
     </div>
 
     <script>
+        // رابط Google Apps Script الخاص بك مدمج مباشرة
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwzgwUyLzOufLqV2Iv_tBKTmBGVLBZGL39OSQd-RE0U9zzBlHjZ4YSggweZdLcxS0MaTQ/exec";
+
         const urlParams = new URLSearchParams(window.location.search);
         const isFromQR = urlParams.get('qr') === 'true';
 
         const loyaltyForm = document.getElementById('loyaltyForm');
         const lockMessage = document.getElementById('lockMessage');
         const resultBox = document.getElementById('resultBox');
+        const loadingDiv = document.getElementById('loading');
+        const submitBtn = document.getElementById('submitBtn');
 
+        // التحقق من الرابط ?qr=true
         if (isFromQR) {
             loyaltyForm.style.display = 'block';
             lockMessage.style.display = 'none';
@@ -120,40 +131,45 @@
             loyaltyForm.style.display = 'none';
         }
 
-        loyaltyForm.addEventListener('submit', function(e) {
+        loyaltyForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             let phone = document.getElementById('clientPhone').value.trim();
             let cleanPhone = phone.replace(/[^0-9]/g, '');
 
-            let storageKey = 'visits_' + cleanPhone;
-            
-            // قراءة القيمة القديمة من الذاكرة بدقة
-            let currentVisits = localStorage.getItem(storageKey);
-            if (currentVisits === null) {
-                currentVisits = 0;
-            } else {
-                currentVisits = parseInt(currentVisits);
-            }
-            
-            // زيادة زيارة جديدة
-            currentVisits += 1;
-
-            let giftMessage = "";
-
-            if (currentVisits >= 5) {
-                giftMessage = "🎉 مبروك! هذه زيارتك رقم 5، لقد ربحت معنا هدية مجانية أو خصماً خاصاً! أري هذه الشاشة لصاحب المحل.";
-                localStorage.setItem(storageKey, '0'); // الرجوع للصفر بعد الوصول لـ 5
-            } else {
-                giftMessage = `باقي لك ${5 - currentVisits} زيارات وتصل للهدية الكبرى! 🎁`;
-                localStorage.setItem(storageKey, currentVisits); // حفظ العدد الجديد
+            if(!cleanPhone) {
+                alert("المرجو إدخال رقم هاتف صحيح");
+                return;
             }
 
-            loyaltyForm.style.display = 'none';
-            document.getElementById('resPhoneTitle').innerText = `رقم الهاتف: ${phone}`;
-            document.getElementById('resVisitsCount').innerText = `هذه هي زيارتك رقم: ${currentVisits} للمحل 📌`;
-            document.getElementById('resGift').innerText = giftMessage;
-            resultBox.style.display = 'block';
+            submitBtn.style.display = 'none';
+            loadingDiv.style.display = 'block';
+
+            try {
+                // إرسال رقم الهاتف إلى Google Sheets عبر الـ Webhook
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: cleanPhone })
+                });
+
+                setTimeout(() => {
+                    loadingDiv.style.display = 'none';
+                    loyaltyForm.style.display = 'none';
+                    
+                    document.getElementById('resPhoneTitle').innerText = `رقم الهاتف: ${phone}`;
+                    document.getElementById('resVisitsCount').innerText = `تم تسجيل زيارتك في النظام بنجاح! 📌`;
+                    document.getElementById('resGift').innerText = `شكراً لزيارتك المتكررة لمحلنا. تابع رصيدك وتأكد من هداياك معنا! 🎁`;
+                    resultBox.style.display = 'block';
+                }, 1000);
+
+            } catch (error) {
+                console.error(error);
+                alert("حدث خطأ في الاتصال بالسيرفر.");
+                submitBtn.style.display = 'block';
+                loadingDiv.style.display = 'none';
+            }
         });
     </script>
 
