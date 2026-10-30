@@ -74,7 +74,6 @@
             padding: 20px;
             border-radius: 12px;
             margin-top: 15px;
-            animation: fadeIn 0.5s ease;
         }
         .result-box h3 { color: #2e7d32; margin-top: 0; }
         .gift-text { color: #d9534f; font-weight: bold; font-size: 18px; margin-top: 10px; }
@@ -85,12 +84,10 @@
     <div class="card">
         <h2>🎁 برنامج الولاء والزيارات</h2>
 
-        <!-- رسالة المنع إذا لم يتم مسح الـ QR Code -->
         <div id="lockMessage" class="lock-msg">
             ⚠️ يرجى مسح الـ QR Code الموجود داخل المحل لتسجيل زيارتك والاستفادة من العروض!
         </div>
 
-        <!-- استمارة تسجيل رقم الهاتف فقط -->
         <form id="loyaltyForm" style="display: none;">
             <div class="badge">مسح ضوئي ناجح من داخل المحل ✔️</div>
             
@@ -100,7 +97,6 @@
             <button type="submit">تسجيل الزيارة</button>
         </form>
 
-        <!-- صندوق النتيجة اللي غادي يبان للكليان في الشاشة -->
         <div id="resultBox" class="result-box">
             <h3 id="resPhoneTitle"></h3>
             <p id="resVisitsCount"></p>
@@ -109,7 +105,6 @@
     </div>
 
     <script>
-        // التحقق من وجود ?qr=true في الرابط لفتح الصفحة
         const urlParams = new URLSearchParams(window.location.search);
         const isFromQR = urlParams.get('qr') === 'true';
 
@@ -125,34 +120,35 @@
             loyaltyForm.style.display = 'none';
         }
 
-        // معالجة البيانات برقم الهاتف فقط عند الضغط على تسجيل
         loyaltyForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
             let phone = document.getElementById('clientPhone').value.trim();
             let cleanPhone = phone.replace(/[^0-9]/g, '');
 
-            // مفتاح خاص برقم الهاتف في الذاكرة
             let storageKey = 'visits_' + cleanPhone;
-            let currentVisits = parseInt(localStorage.getItem(storageKey) || '0');
             
-            // زيادة الزيارة بواحدة
+            // قراءة القيمة القديمة من الذاكرة بدقة
+            let currentVisits = localStorage.getItem(storageKey);
+            if (currentVisits === null) {
+                currentVisits = 0;
+            } else {
+                currentVisits = parseInt(currentVisits);
+            }
+            
+            // زيادة زيارة جديدة
             currentVisits += 1;
 
             let giftMessage = "";
 
-            // التحقق واش وصل للزيارة الخامسة
             if (currentVisits >= 5) {
                 giftMessage = "🎉 مبروك! هذه زيارتك رقم 5، لقد ربحت معنا هدية مجانية أو خصماً خاصاً! أري هذه الشاشة لصاحب المحل.";
-                // إعادة العداد إلى 0 باش يبدأ دورة جديدة من 1 في المرة الموالية
-                localStorage.setItem(storageKey, '0');
+                localStorage.setItem(storageKey, '0'); // الرجوع للصفر بعد الوصول لـ 5
             } else {
                 giftMessage = `باقي لك ${5 - currentVisits} زيارات وتصل للهدية الكبرى! 🎁`;
-                // حفظ الزيارة الحالية
-                localStorage.setItem(storageKey, currentVisits);
+                localStorage.setItem(storageKey, currentVisits); // حفظ العدد الجديد
             }
 
-            // إخفاء الفورم وإظهار النتيجة في الشاشة مباشرة برقم الهاتف
             loyaltyForm.style.display = 'none';
             document.getElementById('resPhoneTitle').innerText = `رقم الهاتف: ${phone}`;
             document.getElementById('resVisitsCount').innerText = `هذه هي زيارتك رقم: ${currentVisits} للمحل 📌`;
