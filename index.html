@@ -85,9 +85,9 @@
     <div class="card">
         <h2>🎁 برنامج الولاء والزيارات</h2>
 
-        <!-- رسالة الخطأ إذا لم يتم مسح QR Code من المحل -->
+        <!-- رسالة الحظر إذا لم يتم مسح الـ QR أو تم الاستخدام مسبقاً -->
         <div id="lockMessage" class="lock-msg">
-            ⚠️ يرجى مسح الـ QR Code الموجود داخل المحل لتسجيل زيارتك والاستفادة من العروض!
+            ⚠️ عذراً، لا يمكن الوصول لهذه الصفحة مباشرة! يرجى مسح الـ QR Code الموجود داخل المحل لتسجيل زيارتك.
         </div>
 
         <!-- استمارة إدخال رقم الهاتف -->
@@ -101,7 +101,7 @@
             <div id="loading">جاري تسجيل زيارتك في السيرفر... ⏳</div>
         </form>
 
-        <!-- صندوق النتيجة الذي يظهر للزبون -->
+        <!-- صندوق النتيجة -->
         <div id="resultBox" class="result-box">
             <h3 id="resPhoneTitle"></h3>
             <p id="resVisitsCount"></p>
@@ -121,9 +121,19 @@
         const loadingDiv = document.getElementById('loading');
         const submitBtn = document.getElementById('submitBtn');
 
+        const alreadyVisited = localStorage.getItem('loyalty_visited');
+
+        // التحقق واش جاي من QR Code وأنه ما تسجلش من قبل في نفس التليفون
         if (isFromQR) {
-            loyaltyForm.style.display = 'block';
-            lockMessage.style.display = 'none';
+            if (alreadyVisited) {
+                // إيلا كان مسجل من قبل، كنعطيوها رسالة بلي صافي تسجلات الزيارة ديالو اليوم
+                lockMessage.innerText = "⚠️ لقد قمت بتسجيل زيارتك مسبقاً! ننتظرك في زيارتك القادمة للمحل.";
+                lockMessage.style.display = 'block';
+                loyaltyForm.style.display = 'none';
+            } else {
+                loyaltyForm.style.display = 'block';
+                lockMessage.style.display = 'none';
+            }
         } else {
             lockMessage.style.display = 'block';
             loyaltyForm.style.display = 'none';
@@ -150,6 +160,9 @@
                 });
                 let data = await res.json();
 
+                // قفل الهاتف لكي لا يتمكن من إعادة الإدخال بدون QR جديد
+                localStorage.setItem('loyalty_visited', 'true');
+
                 loadingDiv.style.display = 'none';
                 loyaltyForm.style.display = 'none';
                 
@@ -172,6 +185,7 @@
 
             } catch (error) {
                 console.error(error);
+                localStorage.setItem('loyalty_visited', 'true');
                 loadingDiv.style.display = 'none';
                 loyaltyForm.style.display = 'none';
                 document.getElementById('resPhoneTitle').innerText = `رقم الهاتف: ${phone}`;
