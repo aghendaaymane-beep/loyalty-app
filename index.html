@@ -36,7 +36,6 @@
             font-size: 16px;
             text-align: center;
         }
-        /* اخفاء النص بنقاط سوداء دون تفعيل ميزة الباسورد في الآيفون */
         .mask-text {
             -webkit-text-security: disc;
             letter-spacing: 3px;
@@ -95,15 +94,15 @@
             ⚠️ عذراً، لا يمكن الوصول لهذه الصفحة مباشرة! يرجى مسح الـ QR Code الموجود داخل المحل.
         </div>
 
-        <!-- تم إعطاء اسماء وهمية للفورم والخانة لتضليل نظام آيفون بالكامل -->
-        <form id="loyaltyForm" style="display: none;" autocomplete="off" name="shoppro_form_xyz">
+        <form id="loyaltyForm" style="display: none;" autocomplete="off" name="custom_store_form">
             <div class="badge">مسح ضوئي ناجح من داخل المحل ✔️</div>
             
             <label for="clientPhone">رقم الهاتف:</label>
-            <input type="tel" id="clientPhone" placeholder="0612345678" required autocomplete="off">
+            <input type="tel" id="clientPhone" placeholder="0612345678" required autocomplete="off" autocapitalize="off" spellcheck="false">
 
-            <label for="verificationCode">الكود السري المكتوب في المحل اليوم:</label>
-            <input type="text" id="verificationCode" class="mask-text" placeholder="أدخل الكود السري" maxlength="6" required autocomplete="off" name="otp_field_9988">
+            <!-- تم تغيير اسم العنصر والوصف لتفادي نظام تخزين الكلمات التلقائي في أبل -->
+            <label for="storeToken">الرمز المكتوب على السبورة اليوم:</label>
+            <input type="text" id="storeToken" class="mask-text" placeholder="أدخل الرمز الموجود بالمحل" maxlength="6" required autocomplete="off" autocapitalize="off" spellcheck="false" name="random_code_input">
 
             <button type="submit" id="submitBtn">تسجيل الزيارة</button>
             <div id="loading">جاري التحقق وتسجيل الزيارة... ⏳</div>
@@ -143,11 +142,11 @@
             e.preventDefault();
             
             let phone = document.getElementById('clientPhone').value.trim();
-            let enteredPin = document.getElementById('verificationCode').value.trim();
+            let enteredPin = document.getElementById('storeToken').value.trim();
             let cleanPhone = phone.replace(/[^0-9]/g, '');
 
             if (enteredPin !== DAILY_PIN) {
-                alert("⚠️ الكود السري غير صحيح! يرجى التأكد من الكود المكتوب داخل المحل.");
+                alert("⚠️ الرمز غير صحيح! يرجى التأكد من الرمز المكتوب داخل المحل.");
                 return;
             }
 
