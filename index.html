@@ -36,6 +36,10 @@
             font-size: 16px;
             text-align: center;
         }
+        /* ستايل خاص لتغطية الأرقام في الهواتف */
+        .secure-pin {
+            -webkit-text-security: disc;
+        }
         button {
             background-color: #25D366;
             color: white;
@@ -86,27 +90,25 @@
     <div class="card">
         <h2>🎁 برنامج الولاء والزيارات</h2>
 
-        <!-- رسالة الخطأ إذا لم يتم مسح QR Code من المحل -->
+        <!-- رسالة الخطأ إذا لم يتم مسح QR Code -->
         <div id="lockMessage" class="lock-msg">
             ⚠️ عذراً، لا يمكن الوصول لهذه الصفحة مباشرة! يرجى مسح الـ QR Code الموجود داخل المحل.
         </div>
 
-        <!-- استمارة إدخال رقم الهاتف والكود السري -->
         <form id="loyaltyForm" style="display: none;" autocomplete="off">
             <div class="badge">مسح ضوئي ناجح من داخل المحل ✔️</div>
             
             <label for="clientPhone">رقم الهاتف:</label>
             <input type="tel" id="clientPhone" placeholder="0612345678" required autocomplete="off">
 
-            <!-- تم إضافة خاصية تمنع الآيفون من اقتراح حفظ كلمة السر -->
+            <!-- تم تغيير نوع الخانة إلى هاتف مع تغطية الأرقام لتفادي آيفون -->
             <label for="storePin">الكود السري المكتوب في المحل اليوم:</label>
-            <input type="password" id="storePin" placeholder="أدخل الكود السري" maxlength="6" required autocomplete="new-password" data-lpignore="true">
+            <input type="tel" id="storePin" class="secure-pin" placeholder="أدخل الكود السري" maxlength="6" required autocomplete="off">
 
             <button type="submit" id="submitBtn">تسجيل الزيارة</button>
             <div id="loading">جاري التحقق وتسجيل الزيارة... ⏳</div>
         </form>
 
-        <!-- صندوق النتيجة -->
         <div id="resultBox" class="result-box">
             <h3 id="resPhoneTitle"></h3>
             <p id="resVisitsCount"></p>
@@ -199,10 +201,6 @@
                 resultBox.style.display = 'block';
             }
         });
-    </script>
-
-</body>
-</html>
     </script>
 
 </body>
