@@ -36,7 +36,6 @@
             font-size: 16px;
             text-align: center;
         }
-        /* تحويل النص إلى نقط مخفية بدون تفعيل نظام كلمات السر في الآيفون */
         .hidden-pin {
             -webkit-text-security: disc;
         }
@@ -90,20 +89,19 @@
     <div class="card">
         <h2>🎁 برنامج الولاء والزيارات</h2>
 
-        <!-- رسالة الخطأ إذا لم يتم مسح QR Code -->
         <div id="lockMessage" class="lock-msg">
             ⚠️ عذراً، لا يمكن الوصول لهذه الصفحة مباشرة! يرجى مسح الـ QR Code الموجود داخل المحل.
         </div>
 
-        <form id="loyaltyForm" style="display: none;" autocomplete="off" name="no-password-form">
+        <form id="loyaltyForm" style="display: none;" autocomplete="off">
             <div class="badge">مسح ضوئي ناجح من داخل المحل ✔️</div>
             
             <label for="clientPhone">رقم الهاتف:</label>
             <input type="tel" id="clientPhone" placeholder="0612345678" required autocomplete="off">
 
-            <!-- خانة نصية عادية مخفية بـ CSS لتفادي حفظ الآيفون للباسورد نهائياً -->
             <label for="storePin">الكود السري المكتوب في المحل اليوم:</label>
-            <input type="text" id="storePin" class="hidden-pin" placeholder="أدخل الكود السري" maxlength="6" required autocomplete="off" name="random_field_xyz">
+            <!-- خصائص عشوائية ووهمية لتضليل نظام آيفون -->
+            <input type="text" id="storePin" class="hidden-pin" placeholder="أدخل الكود السري" maxlength="6" required autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
 
             <button type="submit" id="submitBtn">تسجيل الزيارة</button>
             <div id="loading">جاري التحقق وتسجيل الزيارة... ⏳</div>
@@ -198,7 +196,7 @@
                 document.getElementById('resPhoneTitle').innerText = `رقم الهاتف: ${phone}`;
                 document.getElementById('resVisitsCount').innerText = `تم تسجيل زيارتك بنجاح! 📌`;
                 document.getElementById('resGift').innerText = `باقي لك زيارات وتصل للهدية الكبرى! 🎁`;
-                resultBox.style.display, (resultBox.style.display = 'block');
+                resultBox.style.display = 'block';
             }
         });
     </script>
