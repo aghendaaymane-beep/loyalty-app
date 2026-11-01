@@ -86,20 +86,21 @@
     <div class="card">
         <h2>🎁 برنامج الولاء والزيارات</h2>
 
-        <!-- رسالة الخطأ إذا لم يتم مسح QR Code -->
+        <!-- رسالة الخطأ إذا لم يتم مسح QR Code من المحل -->
         <div id="lockMessage" class="lock-msg">
             ⚠️ عذراً، لا يمكن الوصول لهذه الصفحة مباشرة! يرجى مسح الـ QR Code الموجود داخل المحل.
         </div>
 
         <!-- استمارة إدخال رقم الهاتف والكود السري -->
-        <form id="loyaltyForm" style="display: none;">
+        <form id="loyaltyForm" style="display: none;" autocomplete="off">
             <div class="badge">مسح ضوئي ناجح من داخل المحل ✔️</div>
             
             <label for="clientPhone">رقم الهاتف:</label>
-            <input type="tel" id="clientPhone" placeholder="0612345678" required>
+            <input type="tel" id="clientPhone" placeholder="0612345678" required autocomplete="off">
 
-            <label for="storePin">الكود السري الموجود في المحل اليوم:</label>
-            <input type="password" id="storePin" placeholder="أدخل الكود المكتوب في المحل" maxlength="4" required>
+            <!-- تم إضافة خاصية تمنع الآيفون من اقتراح حفظ كلمة السر -->
+            <label for="storePin">الكود السري المكتوب في المحل اليوم:</label>
+            <input type="password" id="storePin" placeholder="أدخل الكود السري" maxlength="6" required autocomplete="new-password" data-lpignore="true">
 
             <button type="submit" id="submitBtn">تسجيل الزيارة</button>
             <div id="loading">جاري التحقق وتسجيل الزيارة... ⏳</div>
@@ -116,7 +117,7 @@
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-0KHJqaq7_MYVba7R9-nUbR--cDMCLBLqLPWkpf7oTJsmFj5TgVwdxbpfP9s7eCnDMA/exec";
         
-        // 🔑 حط هنا الكود السري الذي سيتغير كل يوم في المحل (مثلاً كود اليوم هو 2026)
+        // 🔑 الكود السري الخاص بالمحل اليوم
         const DAILY_PIN = "2026";
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -144,7 +145,7 @@
             let cleanPhone = phone.replace(/[^0-9]/g, '');
 
             if (enteredPin !== DAILY_PIN) {
-                alert("⚠️ الكود السري للمحل غير صحيح! يرجى التأكد من الكود المكتوب داخل المحل.");
+                alert("⚠️ الكود السري غير صحيح! يرجى التأكد من الكود المكتوب داخل المحل.");
                 return;
             }
 
@@ -198,6 +199,10 @@
                 resultBox.style.display = 'block';
             }
         });
+    </script>
+
+</body>
+</html>
     </script>
 
 </body>
