@@ -36,51 +36,7 @@
             font-size: 16px;
             text-align: center;
         }
-        
-        /* ستايل شاشة عرض الرمز السري بنقاط سرية */
-        .pin-display {
-            font-size: 24px;
-            letter-spacing: 8px;
-            background: #fafafa;
-            color: #333;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            margin: 6px 0 12px 0;
-            font-weight: bold;
-        }
-
-        /* لوحة الأرقام التفاعلية داخل الصفحة */
-        .keypad {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        .key-btn {
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 14px;
-            font-size: 20px;
-            font-weight: bold;
-            color: #333;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .key-btn:active {
-            background-color: #e2e6ea;
-        }
-        .key-del {
-            background-color: #fdf7f7;
-            color: #d9534f;
-            border-color: #f5c6cb;
-        }
-
-        button.submit-btn {
+        button {
             background-color: #25D366;
             color: white;
             border: none;
@@ -90,10 +46,9 @@
             font-size: 17px;
             cursor: pointer;
             font-weight: bold;
-            margin-top: 5px;
+            margin-top: 10px;
         }
-        button.submit-btn:hover { background-color: #1ebe5d; }
-        
+        button:hover { background-color: #1ebe5d; }
         .lock-msg {
             color: #d9534f;
             background: #fdf7f7;
@@ -135,33 +90,17 @@
             ⚠️ عذراً، لا يمكن الوصول لهذه الصفحة مباشرة! يرجى مسح الـ QR Code الموجود داخل المحل.
         </div>
 
-        <form id="loyaltyForm" style="display: none;">
+        <!-- فوروم عادي بخانات نصية واضحة لتفادي أي ذكاء اصطناعي لآبل -->
+        <form id="loyaltyForm" style="display: none;" autocomplete="off">
             <div class="badge">مسح ضوئي ناجح من داخل المحل ✔️</div>
             
             <label for="clientPhone">رقم الهاتف:</label>
             <input type="tel" id="clientPhone" placeholder="0612345678" required autocomplete="off">
 
-            <label>الرمز السري المكتوب في المحل:</label>
-            <!-- شاشة عرض الرمز المكتفية بالنقاط (بدون خانة كتابة تقليدية) -->
-            <div id="pinDisplay" class="pin-display">----</div>
+            <label for="storePin">الرمز المكتوب في المحل:</label>
+            <input type="text" id="storePin" placeholder="أدخل الرمز هنا" maxlength="6" required autocomplete="off">
 
-            <!-- لوحة الأرقام التفاعلية -->
-            <div class="keypad">
-                <button type="button" class="key-btn" onclick="pressNum('1')">1</button>
-                <button type="button" class="key-btn" onclick="pressNum('2')">2</button>
-                <button type="button" class="key-btn" onclick="pressNum('3')">3</button>
-                <button type="button" class="key-btn" onclick="pressNum('4')">4</button>
-                <button type="button" class="key-btn" onclick="pressNum('5')">5</button>
-                <button type="button" class="key-btn" onclick="pressNum('6')">6</button>
-                <button type="button" class="key-btn" onclick="pressNum('7')">7</button>
-                <button type="button" class="key-btn" onclick="pressNum('8')">8</button>
-                <button type="button" class="key-btn" onclick="pressNum('9')">9</button>
-                <button type="button" class="key-btn key-del" onclick="clearPin()">C</button>
-                <button type="button" class="key-btn" onclick="pressNum('0')">0</button>
-                <button type="button" class="key-btn key-del" onclick="deletePin()">⌫</button>
-            </div>
-
-            <button type="submit" id="submitBtn" class="submit-btn">تسجيل الزيارة</button>
+            <button type="submit" id="submitBtn">تسجيل الزيارة</button>
             <div id="loading">جاري التحقق وتسجيل الزيارة... ⏳</div>
         </form>
 
@@ -177,37 +116,6 @@
         
         // 🔑 الكود السري الخاص بالمحل اليوم
         const DAILY_PIN = "2026";
-        let enteredPin = "";
-
-        // دالة الضغط على أرقام اللوحة التفاعلية
-        function pressNum(num) {
-            if (enteredPin.length < 6) {
-                enteredPin += num;
-                updateDisplay();
-            }
-        }
-
-        // مسح خانة واحدة
-        function deletePin() {
-            enteredPin = enteredPin.slice(0, -1);
-            updateDisplay();
-        }
-
-        // مسح الكل
-        function clearPin() {
-            enteredPin = "";
-            updateDisplay();
-        }
-
-        // تحديث شكل النقاط في الشاشة
-        function updateDisplay() {
-            const display = document.getElementById('pinDisplay');
-            if (enteredPin.length === 0) {
-                display.innerText = "----";
-            } else {
-                display.innerText = "•".repeat(enteredPin.length);
-            }
-        }
 
         const urlParams = new URLSearchParams(window.location.search);
         const isFromQR = urlParams.get('qr') === 'true';
@@ -230,10 +138,11 @@
             e.preventDefault();
             
             let phone = document.getElementById('clientPhone').value.trim();
+            let enteredPin = document.getElementById('storePin').value.trim();
             let cleanPhone = phone.replace(/[^0-9]/g, '');
 
             if (enteredPin !== DAILY_PIN) {
-                alert("⚠️ الرمز السري غير صحيح! يرجى التأكد من الرمز المكتوب داخل المحل.");
+                alert("⚠️ الرمز غير صحيح! يرجى التأكد من الرمز المكتوب داخل المحل.");
                 return;
             }
 
