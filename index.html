@@ -36,8 +36,10 @@
             font-size: 16px;
             text-align: center;
         }
-        .hidden-pin {
+        /* اخفاء النص بنقاط سوداء دون تفعيل ميزة الباسورد في الآيفون */
+        .mask-text {
             -webkit-text-security: disc;
+            letter-spacing: 3px;
         }
         button {
             background-color: #25D366;
@@ -93,15 +95,15 @@
             ⚠️ عذراً، لا يمكن الوصول لهذه الصفحة مباشرة! يرجى مسح الـ QR Code الموجود داخل المحل.
         </div>
 
-        <form id="loyaltyForm" style="display: none;" autocomplete="off">
+        <!-- تم إعطاء اسماء وهمية للفورم والخانة لتضليل نظام آيفون بالكامل -->
+        <form id="loyaltyForm" style="display: none;" autocomplete="off" name="shoppro_form_xyz">
             <div class="badge">مسح ضوئي ناجح من داخل المحل ✔️</div>
             
             <label for="clientPhone">رقم الهاتف:</label>
             <input type="tel" id="clientPhone" placeholder="0612345678" required autocomplete="off">
 
-            <label for="storePin">الكود السري المكتوب في المحل اليوم:</label>
-            <!-- خصائص عشوائية ووهمية لتضليل نظام آيفون -->
-            <input type="text" id="storePin" class="hidden-pin" placeholder="أدخل الكود السري" maxlength="6" required autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
+            <label for="verificationCode">الكود السري المكتوب في المحل اليوم:</label>
+            <input type="text" id="verificationCode" class="mask-text" placeholder="أدخل الكود السري" maxlength="6" required autocomplete="off" name="otp_field_9988">
 
             <button type="submit" id="submitBtn">تسجيل الزيارة</button>
             <div id="loading">جاري التحقق وتسجيل الزيارة... ⏳</div>
@@ -141,7 +143,7 @@
             e.preventDefault();
             
             let phone = document.getElementById('clientPhone').value.trim();
-            let enteredPin = document.getElementById('storePin').value.trim();
+            let enteredPin = document.getElementById('verificationCode').value.trim();
             let cleanPhone = phone.replace(/[^0-9]/g, '');
 
             if (enteredPin !== DAILY_PIN) {
